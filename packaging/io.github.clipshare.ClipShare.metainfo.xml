@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.clipshare.ClipShare</id>
+  <name>ClipShare</name>
+  <summary>Trim, mix and share gaming highlights</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description><p>Browse local recordings, mix selected audio tracks, trim highlights and compress videos to a chosen upload size using FFmpeg. Optional Catbox uploads preserve original files or share processed clips.</p></description>
+  <launchable type="desktop-id">io.github.clipshare.ClipShare.desktop</launchable>
+  <provides><binary>clipshare</binary></provides>
+  <content_rating type="oars-1.1"/>
+  <releases><release version="0.1.0" date="2026-10-31"/></releases>
+</component>

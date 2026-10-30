@@ -1,0 +1,92 @@
+{
+  "app-id": "io.github.clipshare.ClipShare",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "25.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "clipshare",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--socket=pulseaudio",
+    "--share=network",
+    "--device=dri",
+    "--filesystem=xdg-videos"
+  ],
+  "modules": [
+    {
+      "name": "python",
+      "buildsystem": "autotools",
+      "config-opts": [
+        "--enable-shared",
+        "--with-ensurepip=install"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "path": "vendor/python.tar.gz",
+          "sha256": "6909b15f0363a203a30c8c84ec411d70d263e6ac5b52db4bc06fa86d2649ba8e"
+        }
+      ]
+    },
+    {
+      "name": "x264",
+      "buildsystem": "autotools",
+      "config-opts": [
+        "--enable-shared",
+        "--disable-cli",
+        "--disable-asm"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "path": "vendor/x264.tar.gz",
+          "sha256": "89839fc39379998a17ebec0b3f01635f6a94bf492d1078b1c75372d16c89c572"
+        }
+      ]
+    },
+    {
+      "name": "ffmpeg",
+      "buildsystem": "autotools",
+      "config-opts": [
+        "--enable-gpl",
+        "--enable-libx264",
+        "--disable-doc",
+        "--disable-debug",
+        "--disable-x86asm"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "path": "vendor/ffmpeg.tar.gz",
+          "sha256": "f117507dc501f2a6c11f9241d8d0c3213846cfad91764361af37befd6b6c523d"
+        }
+      ]
+    },
+    {
+      "name": "clipshare",
+      "buildsystem": "simple",
+      "build-commands": [
+        "/app/bin/python3 -m pip install --no-index --find-links=packaging/vendor/wheels setuptools wheel",
+        "/app/bin/python3 -m pip install --no-index --find-links=packaging/vendor/wheels --no-build-isolation .",
+        "install -Dm644 packaging/io.github.clipshare.ClipShare.desktop /app/share/applications/io.github.clipshare.ClipShare.desktop",
+        "install -Dm644 packaging/io.github.clipshare.ClipShare.metainfo.xml /app/share/metainfo/io.github.clipshare.ClipShare.metainfo.xml",
+        "install -Dm644 packaging/io.github.clipshare.ClipShare.svg /app/share/icons/hicolor/scalable/apps/io.github.clipshare.ClipShare.svg"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "..",
+          "skip": [
+            ".git",
+            ".venv",
+            "build",
+            "dist",
+            "flatpak-build",
+            ".flatpak-builder"
+          ]
+        }
+      ]
+    }
+  ]
+}

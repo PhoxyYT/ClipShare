@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=ClipShare
+Comment=Trim, mix and share your gaming highlights
+Exec=clipshare
+Icon=io.github.clipshare.ClipShare
+Terminal=false
+Categories=AudioVideo;Video;Qt;
+StartupNotify=true
