@@ -57,3 +57,4 @@ secrets.toml
 /temp/
 /core
 /core.*
+/flatpak-repo/

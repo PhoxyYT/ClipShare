@@ -86,56 +86,28 @@ Arch packages supply PySide6; Python package version metadata is primarily for p
 This PKGBUILD has not been built on Arch. A published release should replace its
 local-source `SKIP` hash with a release checksum.
 
-## Flatpak / Bazzite
+## Flatpak / CachyOS / Bazzite
 
-A Flatpak manifest, source preparation script, desktop entry, AppStream metadata
-and SVG icon are included. The manifest bundles CPython, x264, FFmpeg and Qt wheels;
-it does not depend on host FFmpeg or changes to immutable system partitions.
-The current recipe targets **x86_64**. It has **not been built or installed** in this
-environment, so Flatpak buildability and Bazzite compatibility are not marked done.
-Build on a Linux development machine with Flatpak/flatpak-builder and Flathub:
+The intended end-user installer is `ClipShare.flatpak` from
+[GitHub Releases](https://github.com/PhoxyYT/ClipShare/releases), opened with Discover
+or installed using `flatpak install --user ./ClipShare.flatpak`. No host Python,
+virtual environment or FFmpeg is needed. Only download releases that actually
+contain a bundle; a source ZIP is not an installer.
 
-```sh
-flatpak install --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
-.venv/bin/python packaging/prepare-flatpak.py
-flatpak-builder --user --install --force-clean flatpak-build packaging/io.github.clipshare.ClipShare.json
-flatpak run io.github.clipshare.ClipShare
-```
+See [installation, update, uninstall and troubleshooting](docs/INSTALL.md) and
+[build/release maintenance and verification status](docs/FLATPAK.md).
 
-To produce a transferable bundle, use `flatpak-builder --repo=repo --force-clean
-flatpak-build packaging/io.github.clipshare.ClipShare.json`, then:
+For developers with Flatpak and flatpak-builder installed:
 
 ```sh
-flatpak build-bundle repo ClipShare.flatpak io.github.clipshare.ClipShare
+bash packaging/build-flatpak.sh
 ```
 
-On Bazzite, install the resulting tested bundle per user, without system layering:
-
-```sh
-flatpak install --user ./ClipShare.flatpak
-flatpak run io.github.clipshare.ClipShare
-```
-
-The preparation script downloads wheels and source archives before the sandboxed
-build, records archive hashes, and keeps inputs in ignored `packaging/vendor/`.
-Retain those inputs for reproducibility; transitive wheels and the x264 stable
-branch are resolved when preparing a fresh vendor directory. This is a developer
-recipe, not a published/reproducible Flathub release yet. Bundled FFmpeg/x264 are
-GPL components; redistribution must meet their corresponding-source obligations.
-
-Permissions: Wayland, fallback X11, audio, DRI, optional-hosting network, and Videos
-folder access; no unrestricted home access. For custom recording folders, grant
-only that folder if the file portal doesn't provide persistent recursive access:
-
-```sh
-flatpak override --user --filesystem="$HOME/Videoklip/Clips:ro" io.github.clipshare.ClipShare
-```
-
-Similarly grant write access to a custom output folder. Qt's file dialog uses
-platform integration where available; persistent portal directory watching still
-needs KDE testing. The baseline Flatpak FFmpeg recipe is software-focused; native
-FFmpeg installs can use NVENC, VA-API and QSV when built with those APIs and supplied
-with working drivers. Flatpak GPU encoding has not been validated.
+This builds the checksum-locked x86_64 manifest, creates `dist/ClipShare.flatpak`,
+installs that bundle and tests the installed application. The new Flatpak workflow
+runs the same pipeline and attaches successful builds to published GitHub Releases.
+**The local runtime download is currently blocked by environment network policy;
+no completed Flatpak build or real-distribution compatibility is claimed yet.**
 
 ## Verification and remaining scope
 

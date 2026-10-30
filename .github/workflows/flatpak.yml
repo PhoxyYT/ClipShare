@@ -1,0 +1,66 @@
+name: Flatpak
+on:
+  push:
+    branches: ['main', 'codex/**']
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+permissions:
+  contents: read
+concurrency:
+  group: flatpak-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder python3-pip desktop-file-utils appstream
+          # Ubuntu 24.04's AppArmor restriction otherwise blocks builder's bwrap.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Validate desktop metadata
+        run: |
+          desktop-file-validate packaging/io.github.clipshare.ClipShare.desktop
+          appstreamcli validate --no-net packaging/io.github.clipshare.ClipShare.metainfo.xml
+      - name: Build, install bundle and test installed application
+        run: dbus-run-session -- bash packaging/build-flatpak.sh
+      - name: Collect exact build inputs for redistribution
+        run: |
+          python3 packaging/prepare-flatpak.py
+          git archive --format=tar --prefix=ClipShare/ HEAD > dist/ClipShare-build-inputs.tar
+          tar --append --file=dist/ClipShare-build-inputs.tar packaging/vendor/release-sources
+          gzip dist/ClipShare-build-inputs.tar
+          cd dist
+          sha256sum ClipShare-build-inputs.tar.gz >> ClipShare.flatpak.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ClipShare-flatpak-x86_64
+          path: |
+            dist/ClipShare.flatpak
+            dist/ClipShare.flatpak.sha256
+            dist/ClipShare-build-inputs.tar.gz
+            dist/flatpak-selftest.json
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ClipShare-flatpak-x86_64
+          path: artifacts
+      - name: Attach tested bundle to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: gh release upload "$RELEASE_TAG" artifacts/* --repo "$REPOSITORY"
