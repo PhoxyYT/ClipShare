@@ -1,7 +1,8 @@
 # Flatpak build and release maintenance
 
 The existing Qt/PySide application is retained. The manifest builds CPython,
-x264 and FFmpeg from checksum-locked upstream archives and installs exact
+x264, FFmpeg and the Kerberos/GSSAPI libraries needed by QtNetwork/QtMultimedia
+from checksum-locked upstream archives and installs exact
 checksum-locked Python wheels offline. QtMultimedia and its FFmpeg playback
 libraries come from PySide6 Essentials/Addons; no host Qt or FFmpeg is used.
 The application FFmpeg command and Qt's playback FFmpeg libraries are separate.
@@ -33,7 +34,8 @@ Only x86_64 wheels are currently supported. Aarch64 needs its own dependency loc
 
 `.github/workflows/test.yml` runs the application test suite. The additional
 `flatpak.yml` workflow runs on PRs, main/codex branch pushes, manual dispatch and
-published releases. It validates desktop metadata, runs the complete Flatpak build
+published releases. It requires the full application regression workflow to pass, validates desktop
+metadata, runs the complete Flatpak build
 and installed-bundle smoke test, then makes the installer/checksums/test report and
 exact build inputs available as a workflow artifact. A separate job with narrowly
 scoped `contents: write` permission uploads those files to GitHub Releases **only
@@ -71,7 +73,9 @@ The full build command has been attempted but **cannot yet download Flathub's
 runtime repository**: the environment proxy denies dl.flathub.org. The requested
 network allowlist edit is saved but needs environment publication. Therefore no
 local Flatpak build, installed-bundle launch or installable bundle is claimed yet.
-The new GitHub workflow has not yet been observed completing. This status must be
+GitHub successfully built and installed a bundle, but its smoke test exposed a
+missing `libgssapi_krb5.so.2`. The manifest now builds Kerberos/GSSAPI explicitly;
+a successful installed-bundle retest is still required. This status must be
 updated with actual build evidence once access is active; a manifest parse is not
 a successful build. GPU encoding, audible playback, Wayland/Discord drag-and-drop,
 and CachyOS/Bazzite desktop behavior remain unverified on real hardware.

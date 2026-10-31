@@ -17,7 +17,7 @@ yet or that the pipeline has already passed.
 4. Launch **ClipShare** from the application menu. Add a folder containing clips.
 
 The bundle includes the application, CPython, PySide6/Qt6 with QtMultimedia,
-FFmpeg/FFprobe, x264, watchdog, requests and their Python dependencies. Flatpak
+FFmpeg/FFprobe, x264, Kerberos/GSSAPI runtime libraries, watchdog, requests and their Python dependencies. Flatpak
 installs the shared Freedesktop runtime separately; the bundle is not a completely
 offline operating-system image. Standard Flathub remote setup may be needed on a
 fresh machine. Desktop installation and the following commands need real CachyOS

@@ -12,11 +12,24 @@ concurrency:
   group: flatpak-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: false
 jobs:
+  tests:
+    uses: ./.github/workflows/test.yml
   build:
+    needs: tests
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
+      - name: Restore Flatpak module cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .flatpak-builder/cache
+            .flatpak-builder/downloads
+          key: flatpak-x86_64-25.08-${{ hashFiles('packaging/io.github.clipshare.ClipShare.json') }}-${{ github.sha }}
+          restore-keys: |
+            flatpak-x86_64-25.08-${{ hashFiles('packaging/io.github.clipshare.ClipShare.json') }}-
+            flatpak-x86_64-25.08-
       - name: Install build tools
         run: |
           sudo apt-get update

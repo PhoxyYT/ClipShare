@@ -1,11 +1,11 @@
 name: Test
-on: [push, pull_request]
+on: [push, pull_request, workflow_call]
 jobs:
   linux:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg libegl1 libopengl0 libpulse0 libxkbcommon0
