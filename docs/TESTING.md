@@ -1,6 +1,6 @@
 # Verification — 31 October 2026
 
-Environment: Debian 13 container, Python 3.12, FFmpeg/FFprobe 7.1.5, Qt/PySide
+Initial MVP environment: Debian 13 container, Python 3.12, FFmpeg/FFprobe 7.1.5, Qt/PySide
 6.8.3. No real desktop session, audio output device, GPU, Flatpak tools, CachyOS,
 or Bazzite installation was available.
 
@@ -32,8 +32,9 @@ backend does not capture QVideoWidget's rendered surface reliably.
 
 Python wheel and source distribution were built successfully. Flatpak input
 preparation downloaded source archives and wheels and recorded archive SHA-256s;
-the Flatpak itself and Arch package have NOT been built. CI configuration is
-provided but has not run on a remote runner.
+the Arch package has NOT been built. Subsequent packaging work successfully built,
+installed and smoke-tested the Flatpak in [GitHub Actions](https://github.com/PhoxyYT/ClipShare/actions/runs/41216654657).
+See [the packaging verification record](FLATPAK.md) for exact scope and artifacts.
 
 ## Required platform acceptance checks
 

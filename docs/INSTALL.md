@@ -4,8 +4,11 @@ ClipShare's intended download is **ClipShare.flatpak** on the project's
 [GitHub Releases page](https://github.com/PhoxyYT/ClipShare/releases). Only use a
 release that actually contains that asset. Source-code ZIP files are not installers.
 The release pipeline attaches the bundle only after building it, installing it,
-and passing its offline smoke test. There is no claim that a release asset exists
-yet or that the pipeline has already passed.
+and passing its offline smoke test. A release has not been published during this
+task. To test the verified build now, sign into GitHub and download
+[ClipShare-flatpak-x86_64](https://github.com/PhoxyYT/ClipShare/actions/runs/41216654657/artifacts/13049215511), extract its ZIP, then use the
+`ClipShare.flatpak` file inside. This is an Actions artifact (14-day retention),
+not a permanent Release asset.
 
 ## Install with the desktop
 

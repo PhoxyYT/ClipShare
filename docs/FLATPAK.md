@@ -60,28 +60,38 @@ source archives. Preserve upstream notices and check Qt/PySide LGPL/GPL obligati
 and corresponding Qt source availability before public distribution. Qt/PySide
 remain dynamically linked. Freedesktop runtime licensing is managed separately.
 
-## Local validation status
+## Verified packaging status — 31 October 2026
 
-Flatpak 1.16.6 and flatpak-builder 1.4.4 were obtained in the Debian development
-container. The manifest loads in flatpak-builder; its download-only run successfully fetched
-and checksum-verified all declared archives and wheels. Desktop-file and AppStream
-validation pass, and the 18 regression tests pass. The standalone installed-
-package smoke test passes natively (real H.264/AAC encode, trim, mix, bounded size,
-unchanged original, window launch and a decoded 320×180 QtMultimedia frame).
+[Run 41216654657](https://github.com/PhoxyYT/ClipShare/actions/runs/41216654657) passed for source commit `e9b137c` on GitHub's
+Ubuntu 24.04 x86_64 runner. The workflow passed the application regression suite,
+validated desktop/AppStream metadata, built/exported the Flatpak, installed the
+actual bundle, and ran `clipshare.selftest` under Freedesktop Platform 25.08.
+The smoke test checks desktop-plugin shared libraries (Wayland, X11 and portal),
+Qt window construction, real H.264/AAC encode/trim/mix, output size, unchanged
+original bytes and a valid decoded QtMultimedia frame. It does not test audible
+speaker output or desktop interaction.
 
-The full build command has been attempted but **cannot yet download Flathub's
-runtime repository**: the environment proxy denies dl.flathub.org. The requested
-network allowlist edit is saved but needs environment publication. Therefore no
-local Flatpak build, installed-bundle launch or installable bundle is claimed yet.
-GitHub successfully built and installed a bundle, but its smoke test exposed a
-missing `libgssapi_krb5.so.2`. The manifest now builds Kerberos/GSSAPI explicitly;
-the subsequent CI run passed build, installation and the installed-bundle smoke
-test. Its build-input archive failed on a long wheel filename; a fresh PAX
-archive now passes local round-trip verification of all 15 input checksums.
-The complete artifact-upload workflow still needs a successful rerun. This status must be
-updated with actual build evidence once access is active; a manifest parse is not
-a successful build. GPU encoding, audible playback, Wayland/Discord drag-and-drop,
-and CachyOS/Bazzite desktop behavior remain unverified on real hardware.
+The [uploaded artifact](https://github.com/PhoxyYT/ClipShare/actions/runs/41216654657/artifacts/13049215511) contains `ClipShare.flatpak`, checksums,
+`flatpak-selftest.json` and `ClipShare-build-inputs.tar.gz`. GitHub reports the
+combined artifact as 501 MB, digest
+`sha256:18d6ed0c5764767f51dbc765923cd5784d20ec5b4c0b9d306f554494f4d62a85`.
+That is the combined Actions artifact digest, not the Flatpak file checksum;
+the latter is provided in the downloaded checksum file. Actions downloads require
+GitHub sign-in and expire after 14 days. Release publishing is configured but has
+not been exercised by creating a release during this task.
+
+Two errors were found and fixed: QtMultimedia required the missing GSSAPI library,
+so Kerberos is now bundled; appending a long wheel filename to Git's ustar archive
+failed, so release inputs now use a fresh PAX archive. All 15 input files were
+round-trip checked against their recorded hashes locally. Successful module caches
+are saved before release archive assembly to avoid rebuilding after artifact errors.
+
+In the local Debian development container, the 18 tests, built-wheel smoke test,
+Kerberos source build and metadata/source verification passed. Local Flatpak
+execution is still blocked by the environment's Flathub network policy; the
+actual Flatpak build/installation/smoke-test evidence is from GitHub Actions.
+GPU encoding, audible playback, Wayland/Discord drag-and-drop, persistent directory
+portal access and real CachyOS/Bazzite desktop behavior remain unverified.
 
 FFmpeg autodetection is disabled so an optional SDK-only library cannot silently
 become an undeclared runtime dependency. The software libx264 encoder is explicitly

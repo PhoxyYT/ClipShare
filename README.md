@@ -106,8 +106,14 @@ bash packaging/build-flatpak.sh
 This builds the checksum-locked x86_64 manifest, creates `dist/ClipShare.flatpak`,
 installs that bundle and tests the installed application. The new Flatpak workflow
 runs the same pipeline and attaches successful builds to published GitHub Releases.
-**The local runtime download is currently blocked by environment network policy;
-no completed Flatpak build or real-distribution compatibility is claimed yet.**
+**The Flatpak has been built, installed and smoke-tested successfully in
+[GitHub Actions](https://github.com/PhoxyYT/ClipShare/actions/runs/41216654657).**
+For the current test build, download [ClipShare-flatpak-x86_64](https://github.com/PhoxyYT/ClipShare/actions/runs/41216654657/artifacts/13049215511)
+while signed into GitHub, extract the ZIP and open `ClipShare.flatpak` with Discover.
+The artifact also includes checksums, the smoke-test report and build inputs.
+Actions artifacts expire after 14 days; release builds will attach permanent
+release assets when a GitHub Release is published. Real CachyOS/Bazzite desktop
+compatibility and hardware acceleration are not yet verified.
 
 ## Verification and remaining scope
 
