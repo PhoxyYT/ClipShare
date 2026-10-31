@@ -6,6 +6,7 @@ not a required pre-build step. It never rewrites the manifest or resolves versio
 """
 import hashlib
 import json
+import shutil
 from pathlib import Path
 import urllib.request
 
@@ -26,7 +27,11 @@ def main():
             if not target.exists():
                 temporary = target.with_suffix(target.suffix+'.part')
                 try:
-                    urllib.request.urlretrieve(url, temporary)
+                    cached = root.parent/'.flatpak-builder'/'downloads'/expected/name
+                    if cached.is_file():
+                        shutil.copyfile(cached, temporary)
+                    else:
+                        urllib.request.urlretrieve(url, temporary)
                     if hashlib.sha256(temporary.read_bytes()).hexdigest() != expected:
                         raise ValueError(f'Checksum mismatch: {url}')
                     temporary.replace(target)

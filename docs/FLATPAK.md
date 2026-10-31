@@ -75,7 +75,10 @@ network allowlist edit is saved but needs environment publication. Therefore no
 local Flatpak build, installed-bundle launch or installable bundle is claimed yet.
 GitHub successfully built and installed a bundle, but its smoke test exposed a
 missing `libgssapi_krb5.so.2`. The manifest now builds Kerberos/GSSAPI explicitly;
-a successful installed-bundle retest is still required. This status must be
+the subsequent CI run passed build, installation and the installed-bundle smoke
+test. Its build-input archive failed on a long wheel filename; a fresh PAX
+archive now passes local round-trip verification of all 15 input checksums.
+The complete artifact-upload workflow still needs a successful rerun. This status must be
 updated with actual build evidence once access is active; a manifest parse is not
 a successful build. GPU encoding, audible playback, Wayland/Discord drag-and-drop,
 and CachyOS/Bazzite desktop behavior remain unverified on real hardware.

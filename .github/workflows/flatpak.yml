@@ -21,7 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Restore Flatpak module cache
-        uses: actions/cache@v4
+        id: flatpak-cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             .flatpak-builder/cache
@@ -66,12 +67,18 @@ jobs:
           path: dist/flatpak-build.log
           if-no-files-found: ignore
           retention-days: 14
+      - name: Save successful Flatpak module cache
+        if: steps.flatpak-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .flatpak-builder/cache
+            .flatpak-builder/downloads
+          key: ${{ steps.flatpak-cache.outputs.cache-primary-key }}
       - name: Collect exact build inputs for redistribution
         run: |
           python3 packaging/prepare-flatpak.py
-          git archive --format=tar --prefix=ClipShare/ HEAD > dist/ClipShare-build-inputs.tar
-          tar --append --file=dist/ClipShare-build-inputs.tar packaging/vendor/release-sources
-          gzip dist/ClipShare-build-inputs.tar
+          python3 packaging/archive-build-inputs.py
           cd dist
           sha256sum ClipShare-build-inputs.tar.gz >> ClipShare.flatpak.sha256
       - uses: actions/upload-artifact@v4

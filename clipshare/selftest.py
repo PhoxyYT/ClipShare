@@ -1,6 +1,7 @@
 """Offline installed-package checks; run with python3 -m clipshare.selftest."""
 from __future__ import annotations
 import hashlib
+import ctypes
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,13 @@ def main():
         root = Path(temporary)
         for name in ('CONFIG', 'CACHE', 'DATA'):
             os.environ[f'XDG_{name}_HOME'] = str(root / name.lower())
+        from PySide6.QtCore import QLibraryInfo
+        # Load desktop plugins even in an offscreen test: otherwise missing X11 or
+        # Wayland libraries can remain hidden until installation on a real desktop.
+        qt_plugins = Path(QLibraryInfo.path(QLibraryInfo.PluginsPath))
+        plugin_handles = [ctypes.CDLL(str(qt_plugins / name)) for name in (
+            'platforms/libqxcb.so', 'platforms/libqwayland-egl.so',
+            'platforms/libqwayland-generic.so', 'platformthemes/libqxdgdesktopportal.so')]
         from PySide6.QtCore import QEventLoop, QTimer, QUrl
         from PySide6.QtMultimedia import QMediaPlayer, QVideoSink
         from PySide6.QtWidgets import QApplication
@@ -70,7 +78,7 @@ def main():
         assert frames and not errors, f'QtMultimedia decode failed: {errors or "no valid frame in 15 seconds"}'
         print(json.dumps({'result': 'passed', 'ffmpeg': run(['ffmpeg', '-version']).splitlines()[0],
                           'export_bytes': output.stat().st_size, 'decoded_frame': frames[0],
-                          'checks': ['dependency imports', 'H264/AAC encoding', 'trim', 'mix',
+                          'checks': ['desktop plugin dependencies', 'dependency imports', 'H264/AAC encoding', 'trim', 'mix',
                                      'size limit', 'original unchanged', 'window launch', 'QtMultimedia decode']}))
 
 
