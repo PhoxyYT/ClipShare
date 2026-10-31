@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install build tools
         run: |
           sudo apt-get update
@@ -28,7 +28,31 @@ jobs:
           desktop-file-validate packaging/io.github.clipshare.ClipShare.desktop
           appstreamcli validate --no-net packaging/io.github.clipshare.ClipShare.metainfo.xml
       - name: Build, install bundle and test installed application
-        run: dbus-run-session -- bash packaging/build-flatpak.sh
+        shell: bash
+        run: |
+          mkdir -p dist
+          set +e
+          dbus-run-session -- bash packaging/build-flatpak.sh 2>&1 | tee dist/flatpak-build.log
+          result=${PIPESTATUS[0]}
+          set -e
+          if (( result != 0 )); then
+            # Expose actionable diagnostics in the job annotation as well as logs.
+            python3 - <<'PYCODE'
+          from pathlib import Path
+          text = '\n'.join(Path('dist/flatpak-build.log').read_text(errors='replace').splitlines()[-30:])[-6000:]
+          text = text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=Flatpak build failure::' + text)
+          PYCODE
+            exit "$result"
+          fi
+      - name: Preserve build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipShare-flatpak-build-log
+          path: dist/flatpak-build.log
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Collect exact build inputs for redistribution
         run: |
           python3 packaging/prepare-flatpak.py
