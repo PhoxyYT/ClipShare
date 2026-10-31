@@ -1,0 +1,110 @@
+name: Flatpak
+on:
+  push:
+    branches: ['main', 'codex/**']
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+permissions:
+  contents: read
+concurrency:
+  group: flatpak-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+jobs:
+  tests:
+    uses: ./.github/workflows/test.yml
+  build:
+    needs: tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - name: Restore Flatpak module cache
+        id: flatpak-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .flatpak-builder/cache
+            .flatpak-builder/downloads
+          key: flatpak-x86_64-25.08-${{ hashFiles('packaging/io.github.clipshare.ClipShare.json') }}-${{ github.sha }}
+          restore-keys: |
+            flatpak-x86_64-25.08-${{ hashFiles('packaging/io.github.clipshare.ClipShare.json') }}-
+            flatpak-x86_64-25.08-
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder python3-pip desktop-file-utils appstream
+          # Ubuntu 24.04's AppArmor restriction otherwise blocks builder's bwrap.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Validate desktop metadata
+        run: |
+          desktop-file-validate packaging/io.github.clipshare.ClipShare.desktop
+          appstreamcli validate --no-net packaging/io.github.clipshare.ClipShare.metainfo.xml
+      - name: Build, install bundle and test installed application
+        shell: bash
+        run: |
+          mkdir -p dist
+          set +e
+          dbus-run-session -- bash packaging/build-flatpak.sh 2>&1 | tee dist/flatpak-build.log
+          result=${PIPESTATUS[0]}
+          set -e
+          if (( result != 0 )); then
+            # Expose actionable diagnostics in the job annotation as well as logs.
+            python3 - <<'PYCODE'
+          from pathlib import Path
+          text = '\n'.join(Path('dist/flatpak-build.log').read_text(errors='replace').splitlines()[-30:])[-6000:]
+          text = text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=Flatpak build failure::' + text)
+          PYCODE
+            exit "$result"
+          fi
+      - name: Preserve build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClipShare-flatpak-build-log
+          path: dist/flatpak-build.log
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Save successful Flatpak module cache
+        if: steps.flatpak-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .flatpak-builder/cache
+            .flatpak-builder/downloads
+          key: ${{ steps.flatpak-cache.outputs.cache-primary-key }}
+      - name: Collect exact build inputs for redistribution
+        run: |
+          python3 packaging/prepare-flatpak.py
+          python3 packaging/archive-build-inputs.py
+          cd dist
+          sha256sum ClipShare-build-inputs.tar.gz >> ClipShare.flatpak.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ClipShare-flatpak-x86_64
+          path: |
+            dist/ClipShare.flatpak
+            dist/ClipShare.flatpak.sha256
+            dist/ClipShare-build-inputs.tar.gz
+            dist/flatpak-selftest.json
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ClipShare-flatpak-x86_64
+          path: artifacts
+      - name: Attach tested bundle to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: gh release upload "$RELEASE_TAG" artifacts/* --repo "$REPOSITORY"

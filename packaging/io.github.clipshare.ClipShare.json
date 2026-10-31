@@ -1,0 +1,244 @@
+{
+  "app-id": "io.github.clipshare.ClipShare",
+  "runtime": "org.freedesktop.Platform",
+  "runtime-version": "25.08",
+  "sdk": "org.freedesktop.Sdk",
+  "command": "clipshare",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--socket=pulseaudio",
+    "--share=network",
+    "--device=dri",
+    "--filesystem=xdg-videos",
+    "--env=QT_QPA_PLATFORM=wayland;xcb",
+    "--env=QT_QPA_PLATFORMTHEME=xdgdesktopportal"
+  ],
+  "modules": [
+    {
+      "name": "python",
+      "buildsystem": "autotools",
+      "config-opts": [
+        "--enable-shared",
+        "--with-ensurepip=install",
+        "--disable-test-modules"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://github.com/python/cpython/archive/refs/tags/v3.12.10.tar.gz",
+          "sha256": "6909b15f0363a203a30c8c84ec411d70d263e6ac5b52db4bc06fa86d2649ba8e"
+        }
+      ],
+      "cleanup": [
+        "/include",
+        "/lib/pkgconfig",
+        "/lib/*.a",
+        "/share/man"
+      ]
+    },
+    {
+      "name": "x264",
+      "buildsystem": "autotools",
+      "config-opts": [
+        "--enable-shared",
+        "--disable-cli",
+        "--disable-asm"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://github.com/mirror/x264/archive/31e19f92f00c7003fa115047ce50978bc98c3a0d.tar.gz",
+          "sha256": "d053c9d86988d6bc78237ca5205865c5ddf99c98ef4cd9927eec8f6d388f6dd9"
+        }
+      ],
+      "cleanup": [
+        "/include",
+        "/lib/pkgconfig",
+        "/lib/*.a",
+        "/share/man"
+      ]
+    },
+    {
+      "name": "ffmpeg",
+      "buildsystem": "autotools",
+      "config-opts": [
+        "--enable-gpl",
+        "--enable-libx264",
+        "--disable-doc",
+        "--disable-debug",
+        "--disable-x86asm",
+        "--disable-autodetect"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.1.1.tar.gz",
+          "sha256": "f117507dc501f2a6c11f9241d8d0c3213846cfad91764361af37befd6b6c523d"
+        }
+      ],
+      "cleanup": [
+        "/include",
+        "/lib/pkgconfig",
+        "/lib/*.a",
+        "/share/man"
+      ]
+    },
+    {
+      "name": "krb5",
+      "buildsystem": "autotools",
+      "subdir": "src",
+      "config-opts": [
+        "--disable-static",
+        "--disable-rpath",
+        "--without-keyutils",
+        "--without-system-verto"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://github.com/krb5/krb5/archive/refs/tags/krb5-1.22.2-final.tar.gz",
+          "sha256": "289f5bb81d1f2f8d5eecebe56a056aeed95d35fd9bb4a7071c5dd7ad4b3fe888"
+        },
+        {
+          "type": "script",
+          "dest": "src",
+          "dest-filename": "autogen.sh",
+          "commands": [
+            "autoreconf -fi"
+          ]
+        }
+      ],
+      "cleanup": [
+        "/include",
+        "/lib/pkgconfig",
+        "/lib/*.a",
+        "/share/man",
+        "/sbin",
+        "/var"
+      ]
+    },
+    {
+      "name": "clipshare",
+      "buildsystem": "simple",
+      "build-commands": [
+        "/app/bin/python3 -m pip install --no-index --find-links=wheels setuptools wheel",
+        "/app/bin/python3 -m pip install --no-index --find-links=wheels --no-build-isolation .",
+        "install -Dm644 packaging/io.github.clipshare.ClipShare.desktop /app/share/applications/io.github.clipshare.ClipShare.desktop",
+        "install -Dm644 packaging/io.github.clipshare.ClipShare.metainfo.xml /app/share/metainfo/io.github.clipshare.ClipShare.metainfo.xml",
+        "install -Dm644 packaging/io.github.clipshare.ClipShare.svg /app/share/icons/hicolor/scalable/apps/io.github.clipshare.ClipShare.svg"
+      ],
+      "sources": [
+        {
+          "type": "dir",
+          "path": "../clipshare",
+          "dest": "clipshare",
+          "skip": [
+            "__pycache__"
+          ]
+        },
+        {
+          "type": "file",
+          "path": "../pyproject.toml"
+        },
+        {
+          "type": "file",
+          "path": "../README.md"
+        },
+        {
+          "type": "file",
+          "path": "../LICENSE"
+        },
+        {
+          "type": "file",
+          "path": "io.github.clipshare.ClipShare.desktop",
+          "dest": "packaging"
+        },
+        {
+          "type": "file",
+          "path": "io.github.clipshare.ClipShare.svg",
+          "dest": "packaging"
+        },
+        {
+          "type": "file",
+          "path": "io.github.clipshare.ClipShare.metainfo.xml",
+          "dest": "packaging"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/49/93/e7c743e7a01e66f22cac4133c320832700b9d15a43d9a46dbd067cc1877e/PySide6_Addons-6.8.3-cp39-abi3-manylinux_2_28_x86_64.whl",
+          "sha256": "6983d3b01fad53637bad5360930d5923509c744cc39704f9c1190eb9934e33da",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/f0/b2/3205336262bf88d57f01503df81ede2a0b1eecbb2a7d58978a5e5625f7c1/PySide6_Essentials-6.8.3-cp39-abi3-manylinux_2_28_x86_64.whl",
+          "sha256": "fd57fa0c886ef99b3844173322c0023ec77cc946a0c9a0cdfbc2ac5c511053c1",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/32/d1/a3652fe2c19134d0d15922177821d863cbd7e842d53a21bbe7e8e3a1b5ac/certifi-2026.10.23-py3-none-any.whl",
+          "sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/7f/c5/38806a25ab5e65fc178f39affeda20858efafede2fce1ffc2556cfc9fe73/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+          "sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl",
+          "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/1e/db/4254e3eabe8020b458f1a747140d32277ec7a271daf1d235b70dc0b4e6e3/requests-2.32.5-py3-none-any.whl",
+          "sha256": "2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl",
+          "sha256": "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/76/a1/f1958c9d00176044ab00464cd89b6969ef3a7d2ed12d316ff1eda3dec88f/shiboken6-6.8.3-cp39-abi3-manylinux_2_28_x86_64.whl",
+          "sha256": "295a003466ca2cccf6660e2f2ceb5e6cef4af192a48a196a32d46b6f0c9ec5cb",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl",
+          "sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/b5/e8/dbf020b4d98251a9860752a094d09a65e1b436ad181faf929983f697048f/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl",
+          "sha256": "20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2",
+          "dest": "wheels"
+        },
+        {
+          "type": "file",
+          "url": "https://files.pythonhosted.org/packages/0b/2c/87f3254fd8ffd29e4c02732eee68a83a1d3c346ae39bc6822dcbcb697f2b/wheel-0.45.1-py3-none-any.whl",
+          "sha256": "708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248",
+          "dest": "wheels"
+        }
+      ]
+    }
+  ],
+  "default-branch": "stable",
+  "build-options": {
+    "env": {
+      "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+      "PYTHONDONTWRITEBYTECODE": "1"
+    }
+  }
+}

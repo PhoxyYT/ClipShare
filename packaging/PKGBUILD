@@ -1,0 +1,23 @@
+# Build from a local checkout: see README. No invented upstream release URL.
+pkgname=clipshare
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Local gaming clip trimming, audio mixing and Discord compression'
+arch=('any')
+license=('MIT')
+depends=('python' 'pyside6' 'python-watchdog' 'python-requests' 'ffmpeg')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+source=("clipshare-$pkgver.tar.gz")
+sha256sums=('SKIP') # Locally generated source archive; release packages must pin this.
+build() {
+  cd "$srcdir/clipshare-$pkgver"
+  python -m build --wheel --no-isolation
+}
+package() {
+  cd "$srcdir/clipshare-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 packaging/io.github.clipshare.ClipShare.desktop "$pkgdir/usr/share/applications/io.github.clipshare.ClipShare.desktop"
+  install -Dm644 packaging/io.github.clipshare.ClipShare.metainfo.xml "$pkgdir/usr/share/metainfo/io.github.clipshare.ClipShare.metainfo.xml"
+  install -Dm644 packaging/io.github.clipshare.ClipShare.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/io.github.clipshare.ClipShare.svg"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
